@@ -11,6 +11,7 @@ class Program
         var buffer = new byte[1024]; // 1 KB
         fluxoDoArquivo.Read(buffer, 0, 1024);
 
+        EscreverBuffer(buffer);
 
         Console.ReadLine();
     }
