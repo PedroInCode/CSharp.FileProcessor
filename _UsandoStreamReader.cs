@@ -5,7 +5,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 partial class Program
 {
-    static void CriarArquivo(string[] args)
+    static void StreamReaderExample(string[] args)
     {
         var enderecoDoArquivo = "contas.txt"; // Define o caminho do arquivo que será lido, nesse caso um arquivo chamado "contas.txt" localizado no mesmo diretório do programa
 
@@ -23,22 +23,34 @@ partial class Program
             {
                 var linha = leitor.ReadLine(); // Lê uma linha do arquivo e armazena na variável linha
 
+                if (string.IsNullOrWhiteSpace(linha))
+                {
+                    continue; // Se a linha for nula, vazia ou contiver apenas espaços em branco, o loop continua para a próxima iteração, ignorando o processamento da linha atual
+                }
+
                 var contaCorrente = ConverterStringParaContaCorrente(linha); // Chama o método ConverterStringParaContaCorrente para converter a linha lida do arquivo em um objeto ContaCorrente
 
-                var mensagem = $"Conta número: {contaCorrente.Numero}, Agência: {contaCorrente.Agencia}, Titular: {contaCorrente.Titular.Nome}, Saldo: {contaCorrente.Saldo}"; // Cria uma mensagem formatada com as informações da conta corrente, incluindo número, agência, nome do titular e saldo
+                if (contaCorrente != null)
+                {
+                    var mensagem = $"Conta número: {contaCorrente.Numero}, Agência: {contaCorrente.Agencia}, Titular: {contaCorrente.Titular.Nome}, Saldo: {contaCorrente.Saldo}"; // Cria uma mensagem formatada com as informações da conta corrente, incluindo número, agência, nome do titular e saldo
 
-                Console.WriteLine(mensagem);
-
+                    Console.WriteLine(mensagem);
+                }
             }
             Console.WriteLine("Chegou no final do arquivo.");
         }
-
         Console.ReadLine();
     }
 
     static ContaCorrente ConverterStringParaContaCorrente(string linha)
     {
         var campos = linha.Split(","); // .Split() Divide a string em um array de substrings com base em um delimitador, nesse caso a vírgula
+
+        if (campos.Length != 4) // Verifica se o número de campos resultantes da divisão da linha é diferente de 4, o que indica que a linha não está no formato esperado
+        {
+            Console.WriteLine($"A linha '{linha}' não está no formato esperado."); // Exibe uma mensagem de erro indicando que a linha não está no formato esperado
+            return null; // Retorna null para indicar que a conversão falhou
+        }
 
         var agencia = campos[0]; // campos[0] Acessa o primeiro elemento do array, que é a agência
         var numero = campos[1]; // campos[1] Acessa o segundo elemento do array, que é o número da conta
