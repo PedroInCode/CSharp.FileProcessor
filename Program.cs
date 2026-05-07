@@ -1,39 +1,31 @@
 ﻿using ByteBank;
 using System.Text;
 
-class Program
+partial class Program
 {
     static void Main(string[] args)
     {
         var enderecoDoArquivo = "contas.txt";
-        
+
         using (var fluxoDoArquivo = new FileStream(enderecoDoArquivo, FileMode.Open))
         {
-            var numeroDeBytesLidos = -1;
+            var leitor = new StreamReader(fluxoDoArquivo);
 
-            var buffer = new byte[1024]; // 1 KB
+            //var linha = leitor.ReadLine(); // Lê uma linha do arquivo
 
-            while (numeroDeBytesLidos != 0)
+            //var texto = leitor.ReadToEnd(); // Lê o restante do arquivo a partir da posição atual - Lê o arquivo inteiro de uma vez!!!
+
+            // var numero = leitor.Read(); // Lê o próximo caractere do arquivo e retorna seu código Unicode
+
+            while (!leitor.EndOfStream) // Enquanto não(!) chegar no final do arquivo
             {
-                numeroDeBytesLidos = fluxoDoArquivo.Read(buffer, 0, 1024);
-                Console.WriteLine($"Bytes lidos: {numeroDeBytesLidos}");
-                
-                EscreverBuffer(buffer, numeroDeBytesLidos);
+                var linha = leitor.ReadLine();
+                Console.WriteLine(linha);
             }
-
-            fluxoDoArquivo.Close();
-
-            Console.ReadLine();
+            Console.WriteLine("Chegou no final do arquivo.");
         }
-    }
 
-    static void EscreverBuffer(byte[] buffer, int bytesLidos)
-    {
-        var utf8 = new UTF8Encoding();
-
-        var texto = utf8.GetString(buffer, 0, bytesLidos);
-
-        Console.Write(texto);
+        Console.ReadLine();
     }
 }
 
