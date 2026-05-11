@@ -41,6 +41,8 @@ partial class Program
             for (int i = 0; i < 100; i++)
             {
                 escritor.WriteLine($"Linha {i}");
+                escritor.Flush(); // Despeja o buffer para o Stream
+
                 Console.WriteLine($"Linha {i} foi escrita no arquivo.Tecle enter...");
                 Console.ReadLine();
             }
