@@ -7,69 +7,79 @@ partial class Program
 {
     static void StreamReaderExample(string[] args)
     {
-        var enderecoDoArquivo = "contas.txt"; // Define o caminho do arquivo que será lido, nesse caso um arquivo chamado "contas.txt" localizado no mesmo diretório do programa
+        var enderecoDoArquivo = "contas.txt";
 
-        using (var fluxoDoArquivo = new FileStream(enderecoDoArquivo, FileMode.Open)) // Cria um objeto FileStream para abrir o arquivo especificado no modo de leitura (FileMode.Open)
+        // ANOTAÇÃO: Abrir o arquivo com FileStream é o método seguro, 
+        // mas o StreamReader é o "especialista em texto". 
+        using (var fluxoDoArquivo = new FileStream(enderecoDoArquivo, FileMode.Open))
         {
+            // ANOTAÇÃO: O StreamReader facilita a vida porque ele já sabe lidar com Encoding (UTF8)
+            // e nos dá métodos como ReadLine(), que "entende" onde termina uma linha.
             var leitor = new StreamReader(fluxoDoArquivo);
 
-            //var linha = leitor.ReadLine(); // Lê uma linha do arquivo
-
-            //var texto = leitor.ReadToEnd(); // Lê o restante do arquivo a partir da posição atual - Lê o arquivo inteiro de uma vez!!!
-
-            // var numero = leitor.Read(); // Lê o próximo caractere do arquivo e retorna seu código Unicode
-
-            while (!leitor.EndOfStream) // Enquanto não(!) chegar no final do arquivo
+            while (!leitor.EndOfStream)
             {
-                var linha = leitor.ReadLine(); // Lê uma linha do arquivo e armazena na variável linha
+                var linha = leitor.ReadLine();
 
                 if (string.IsNullOrWhiteSpace(linha))
                 {
-                    continue; // Se a linha for nula, vazia ou contiver apenas espaços em branco, o loop continua para a próxima iteração, ignorando o processamento da linha atual
+                    continue; // Ignora linhas em branco para evitar erros no Split
                 }
 
-                var contaCorrente = ConverterStringParaContaCorrente(linha); // Chama o método ConverterStringParaContaCorrente para converter a linha lida do arquivo em um objeto ContaCorrente
+                // ANOTAÇÃO: Aqui estou fazendo um "Parsing". 
+                // É exatamente o que uma API faz quando recebe um JSON e transforma em Objeto.
+                var contaCorrente = ConverterStringParaContaCorrente(linha);
 
                 if (contaCorrente != null)
                 {
-                    var mensagem = $"Conta número: {contaCorrente.Numero}, Agência: {contaCorrente.Agencia}, Titular: {contaCorrente.Titular.Nome}, Saldo: {contaCorrente.Saldo}"; // Cria uma mensagem formatada com as informações da conta corrente, incluindo número, agência, nome do titular e saldo
-
+                    var mensagem = $"Conta número: {contaCorrente.Numero}, Agência: {contaCorrente.Agencia}, Titular: {contaCorrente.Titular.Nome}, Saldo: {contaCorrente.Saldo}";
                     Console.WriteLine(mensagem);
                 }
             }
-            Console.WriteLine("Chegou no final do arquivo.");
+            Console.WriteLine("Processamento concluído.");
         }
         Console.ReadLine();
     }
 
     static ContaCorrente ConverterStringParaContaCorrente(string linha)
     {
-        var campos = linha.Split(","); // .Split() Divide a string em um array de substrings com base em um delimitador, nesse caso a vírgula
+        // ANOTAÇÃO: O Split por vírgula transforma o texto em um arquivo CSV (Comma Separated Values).
+        var campos = linha.Split(",");
 
-        if (campos.Length != 4) // Verifica se o número de campos resultantes da divisão da linha é diferente de 4, o que indica que a linha não está no formato esperado
+        if (campos.Length != 4)
         {
-            Console.WriteLine($"A linha '{linha}' não está no formato esperado."); // Exibe uma mensagem de erro indicando que a linha não está no formato esperado
-            return null; // Retorna null para indicar que a conversão falhou
+            Console.WriteLine($"[LOG DE ERRO]: Linha mal formatada -> {linha}");
+            return null;
         }
 
-        var agencia = campos[0]; // campos[0] Acessa o primeiro elemento do array, que é a agência
-        var numero = campos[1]; // campos[1] Acessa o segundo elemento do array, que é o número da conta
-        var saldo = campos[2].Replace(".", ","); // .Replace() Substitui o ponto por vírgula 
-        var nomeTitular = campos[3]; // campos[3] Acessa o quarto elemento do array, que é o nome do titular da conta
+        try
+        {
+            var agencia = campos[0];
+            var numero = campos[1];
 
-        var agenciaComInt = int.Parse(agencia); // int.Parse() Converte a string da agência para um número inteiro
-        var numeroComInt = int.Parse(numero); // int.Parse() Converte a string do número da conta para um número inteiro
-        var saldoComDouble = double.Parse(saldo); // double.Parse() Converte a string do saldo para um número de ponto flutuante (double), considerando a vírgula como separador decimal
+            // ANOTAÇÃO: O Replace aqui é um tratamento de cultura. 
+            // Em sistemas globais, o ponto (.) e a vírgula (,) mudam de função (separador decimal vs milhar).
+            var saldo = campos[2].Replace(".", ",");
+            var nomeTitular = campos[3];
 
-        var titular = new Cliente(); // Cria uma nova instância da classe Cliente para representar o titular da conta
-        titular.Nome = nomeTitular; // Atribui o nome do titular à propriedade Nome do objeto Cliente
+            var agenciaComInt = int.Parse(agencia);
+            var numeroComInt = int.Parse(numero);
+            var saldoComDouble = double.Parse(saldo);
 
-        var resultado = new ContaCorrente(agenciaComInt, numeroComInt); // Cria uma nova instância da classe ContaCorrente usando o construtor que recebe a agência e o número da conta como parâmetros
+            // ANOTAÇÃO: Aqui estou "Inflando" o objeto. 
+            // Eu crio o Cliente e a Conta separadamente e depois vinculo os dois.
+            var titular = new Cliente { Nome = nomeTitular };
+            var resultado = new ContaCorrente(agenciaComInt, numeroComInt);
 
-        resultado.Depositar(saldoComDouble); // Chama o método Depositar da classe ContaCorrente para adicionar o saldo convertido à conta corrente
+            resultado.Depositar(saldoComDouble);
+            resultado.Titular = titular;
 
-        resultado.Titular = titular; // Atribui o objeto Cliente criado anteriormente à propriedade Titular da conta corrente, associando o titular à conta
-
-        return resultado;
+            return resultado;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao converter dados: {ex.Message}");
+            return null;
+        }
     }
 }
