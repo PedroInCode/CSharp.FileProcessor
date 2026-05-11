@@ -19,4 +19,32 @@ partial class Program
             fluxoDoArquivo.Write(bytes, 0, bytes.Length); // Escreve os bytes no arquivo usando o método Write do FileStream, especificando o array de bytes, o índice inicial (0) e a quantidade de bytes a serem escritos (bytes.Length)
         }
     }
+
+    static void CriarArquivoComWriter()
+    {
+        var caminhoNovoArquivo = "contasExportadas.csv";
+
+        using (var fluxoDeArquivo = new FileStream(caminhoNovoArquivo, FileMode.Create)) 
+        using (var escritor = new StreamWriter(fluxoDeArquivo))
+        {
+            escritor.Write("456,65465,456.0,Pedro");
+        }
+    }
+
+    static void TestaEscrita()
+    {
+        var caminhoNovoArquivo = "teste.txt";
+
+        using (var fluxoDeArquivo = new FileStream(caminhoNovoArquivo, FileMode.Create))
+        using (var escritor = new StreamWriter(fluxoDeArquivo))
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                escritor.WriteLine($"Linha {i}");
+                Console.WriteLine($"Linha {i} foi escrita no arquivo.Tecle enter...");
+                Console.ReadLine();
+            }
+        }
+        
+    }
 }
