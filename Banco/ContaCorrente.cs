@@ -43,9 +43,4 @@ internal class ContaCorrente
 
         Saldo += valor;
     }
-
-    public void Transferir(double valor, ContaCorrente contaCorrente)
-    {
-
-    }
 }
